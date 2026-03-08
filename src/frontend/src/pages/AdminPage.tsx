@@ -10,6 +10,7 @@ import {
   SelectTrigger,
   SelectValue,
 } from "@/components/ui/select";
+import { Separator } from "@/components/ui/separator";
 import { Skeleton } from "@/components/ui/skeleton";
 import { Tabs, TabsList, TabsTrigger } from "@/components/ui/tabs";
 import { useMutation, useQuery, useQueryClient } from "@tanstack/react-query";
@@ -17,8 +18,11 @@ import {
   AlertCircle,
   Calendar,
   CalendarCheck,
+  ChevronDown,
+  ChevronUp,
   Clock,
   HardDrive,
+  IndianRupee,
   LayoutDashboard,
   Loader2,
   Lock,
@@ -26,6 +30,7 @@ import {
   MapPin,
   Phone,
   RefreshCw,
+  Save,
   Smartphone,
   User,
 } from "lucide-react";
@@ -36,6 +41,16 @@ import { useActor } from "../hooks/useActor";
 
 const ADMIN_PASSWORD = "Afifa@7862";
 const AUTH_KEY = "admin_auth";
+
+const ALL_STORAGE_OPTIONS = [
+  "16GB",
+  "32GB",
+  "64GB",
+  "128GB",
+  "256GB",
+  "512GB",
+  "1TB",
+];
 
 type StatusFilter =
   | "All"
@@ -139,36 +154,6 @@ function ListingCardSkeleton() {
   );
 }
 
-function PhotoThumbnail({
-  blob,
-  label,
-}: {
-  blob: { getDirectURL: () => string } | undefined;
-  label: string;
-}) {
-  if (!blob) return null;
-  const url = blob.getDirectURL();
-  if (!url) return null;
-
-  return (
-    <a
-      href={url}
-      target="_blank"
-      rel="noopener noreferrer"
-      className="group flex flex-col items-center gap-1"
-    >
-      <div className="w-20 h-20 rounded-lg overflow-hidden border-2 border-border/50 group-hover:border-primary/60 transition-colors shadow-sm">
-        <img
-          src={url}
-          alt={label}
-          className="w-full h-full object-cover group-hover:scale-105 transition-transform duration-200"
-        />
-      </div>
-      <span className="text-xs text-muted-foreground font-medium">{label}</span>
-    </a>
-  );
-}
-
 function parsePickupDateTime(pickupDateTime?: string): {
   date: string;
   time: string;
@@ -235,10 +220,6 @@ function ListingCard({
   const isNew = listing.status === "New";
   const statusConfig = STATUS_CONFIG[listing.status] || STATUS_CONFIG.New;
   const ocidIndex = index + 1;
-
-  const hasMobilePhoto = !!listing.mobilePhoto;
-  const hasMotherboardPhoto = !!listing.motherboardPhoto;
-  const hasPhotos = hasMobilePhoto || hasMotherboardPhoto;
 
   // Pickup date/time state
   const parsed = parsePickupDateTime(listing.pickupDateTime);
@@ -311,14 +292,6 @@ function ListingCard({
             {listing.condition}
           </span>
         </div>
-
-        {/* Photos */}
-        {hasPhotos && (
-          <div className="flex items-center gap-3 pt-1">
-            <PhotoThumbnail blob={listing.mobilePhoto} label="मोबाइल" />
-            <PhotoThumbnail blob={listing.motherboardPhoto} label="मदरबोर्ड" />
-          </div>
-        )}
 
         {/* Description */}
         {listing.description && (
@@ -447,6 +420,152 @@ function ListingCard({
   );
 }
 
+// ─── Storage Rates Panel ──────────────────────────────────────────────────────
+
+function StorageRatesPanel() {
+  const { actor, isFetching: actorLoading } = useActor();
+  const queryClient = useQueryClient();
+
+  const { data: ratesData, isLoading: ratesLoading } = useQuery({
+    queryKey: ["storageRates"],
+    queryFn: async () => {
+      if (!actor) return [];
+      return actor.getStorageRates();
+    },
+    enabled: !!actor && !actorLoading,
+  });
+
+  // Local state for each storage rate input
+  const [localRates, setLocalRates] = useState<Record<string, string>>({});
+
+  // Build a rate map from fetched data
+  const rateMap: Record<string, number> = {};
+  for (const r of ratesData ?? []) {
+    rateMap[r.storage] = Number(r.rate);
+  }
+
+  const getDisplayRate = (storage: string): string => {
+    if (localRates[storage] !== undefined) return localRates[storage];
+    return String(rateMap[storage] ?? 0);
+  };
+
+  const saveMutation = useMutation({
+    mutationFn: async ({
+      storage,
+      rate,
+    }: {
+      storage: string;
+      rate: number;
+    }) => {
+      if (!actor) throw new Error("Actor not ready");
+      const success = await actor.updateStorageRate(storage, BigInt(rate));
+      if (!success) throw new Error("Update failed");
+      return { storage, rate };
+    },
+    onSuccess: ({ storage, rate }) => {
+      toast.success(
+        `${storage} रेट अपडेट हो गई: ₹${rate.toLocaleString("en-IN")} / Rate updated`,
+      );
+      queryClient.invalidateQueries({ queryKey: ["storageRates"] });
+      // Clear local override after save
+      setLocalRates((prev) => {
+        const next = { ...prev };
+        delete next[storage];
+        return next;
+      });
+    },
+    onError: (_err, { storage }) => {
+      toast.error(`${storage} रेट अपडेट नहीं हुई / Failed to update rate`);
+    },
+  });
+
+  if (ratesLoading || actorLoading) {
+    return (
+      <div className="space-y-2">
+        {ALL_STORAGE_OPTIONS.map((s) => (
+          <Skeleton key={s} className="h-10 w-full" />
+        ))}
+      </div>
+    );
+  }
+
+  return (
+    <div className="space-y-2" data-ocid="admin.storage-rates.panel">
+      <p className="text-xs text-muted-foreground leading-relaxed">
+        प्रत्येक स्टोरेज के लिए रेट (₹ में) सेट करें। सेलर को स्टोरेज चुनने पर रेट दिखेगी।
+        <br />
+        <span className="text-foreground/60">
+          Set rate per storage (in ₹). Sellers will see this rate when they
+          select storage.
+        </span>
+      </p>
+      <div className="grid gap-2.5 pt-1">
+        {ALL_STORAGE_OPTIONS.map((storage, idx) => {
+          const ocidNum = idx + 1;
+          const displayVal = getDisplayRate(storage);
+          const numVal = Number(displayVal);
+          const isSaving =
+            saveMutation.isPending &&
+            saveMutation.variables?.storage === storage;
+
+          return (
+            <div
+              key={storage}
+              className="flex items-center gap-3 bg-muted/30 border border-border/40 rounded-lg px-3 py-2"
+            >
+              {/* Storage label */}
+              <div className="flex items-center gap-1.5 w-16 shrink-0">
+                <HardDrive className="w-3.5 h-3.5 text-muted-foreground shrink-0" />
+                <span className="text-sm font-display font-semibold text-foreground">
+                  {storage}
+                </span>
+              </div>
+
+              {/* Rate input */}
+              <div className="relative flex-1">
+                <IndianRupee className="absolute left-2.5 top-1/2 -translate-y-1/2 w-3.5 h-3.5 text-muted-foreground" />
+                <Input
+                  type="number"
+                  min={0}
+                  step={50}
+                  value={displayVal}
+                  onChange={(e) =>
+                    setLocalRates((prev) => ({
+                      ...prev,
+                      [storage]: e.target.value,
+                    }))
+                  }
+                  className="h-9 pl-7 text-sm font-semibold"
+                  placeholder="0"
+                  data-ocid={`admin.storage-rates.input.${ocidNum}`}
+                />
+              </div>
+
+              {/* Save button */}
+              <Button
+                size="sm"
+                disabled={isSaving || !displayVal || Number.isNaN(numVal)}
+                onClick={() => saveMutation.mutate({ storage, rate: numVal })}
+                className="h-9 font-display font-semibold text-xs shrink-0 bg-primary hover:bg-primary/90 text-primary-foreground"
+                data-ocid={`admin.storage-rates.save_button.${ocidNum}`}
+              >
+                {isSaving ? (
+                  <Loader2 className="h-3.5 w-3.5 animate-spin" />
+                ) : (
+                  <>
+                    <Save className="h-3.5 w-3.5 mr-1" />
+                    सेव
+                  </>
+                )}
+              </Button>
+            </div>
+          );
+        })}
+      </div>
+    </div>
+  );
+}
+
 // ─── Admin Login Gate ────────────────────────────────────────────────────────
 
 function AdminLogin({ onSuccess }: { onSuccess: () => void }) {
@@ -563,6 +682,7 @@ export function AdminPage() {
     () => sessionStorage.getItem(AUTH_KEY) === "1",
   );
   const [activeFilter, setActiveFilter] = useState<StatusFilter>("All");
+  const [showStorageRates, setShowStorageRates] = useState(false);
   const queryClient = useQueryClient();
   const { actor, isFetching: actorLoading } = useActor();
 
@@ -674,7 +794,24 @@ export function AdminPage() {
             {listings.length} कुल लिस्टिंग / total listings
           </p>
         </div>
-        <div className="flex items-center gap-2 shrink-0">
+        <div className="flex items-center gap-2 shrink-0 flex-wrap">
+          {/* Storage Rates toggle */}
+          <Button
+            variant="outline"
+            size="sm"
+            onClick={() => setShowStorageRates((v) => !v)}
+            className="font-display font-semibold text-xs border-primary/40 text-primary hover:bg-primary/5"
+            data-ocid="admin.storage-rates.toggle.button"
+          >
+            <IndianRupee className="mr-1.5 h-3.5 w-3.5" />
+            स्टोरेज रेट / Rates
+            {showStorageRates ? (
+              <ChevronUp className="ml-1.5 h-3.5 w-3.5" />
+            ) : (
+              <ChevronDown className="ml-1.5 h-3.5 w-3.5" />
+            )}
+          </Button>
+
           <Button
             variant="outline"
             size="sm"
@@ -702,6 +839,32 @@ export function AdminPage() {
           </Button>
         </div>
       </div>
+
+      {/* Storage Rates Panel (collapsible) */}
+      {showStorageRates && (
+        <Card className="border-primary/20 shadow-xs overflow-hidden">
+          <div className="h-1 bg-gradient-to-r from-primary/60 via-primary to-primary/60 w-full" />
+          <CardContent className="p-4 sm:p-5 space-y-3">
+            <div className="flex items-center gap-2">
+              <div className="w-8 h-8 rounded-lg bg-primary/10 flex items-center justify-center">
+                <IndianRupee className="w-4 h-4 text-primary" />
+              </div>
+              <div>
+                <h3 className="font-display font-bold text-base text-foreground">
+                  <span className="text-primary">स्टोरेज रेट</span>
+                  <span className="text-muted-foreground mx-1.5">/</span>
+                  Storage Rates (₹)
+                </h3>
+                <p className="text-xs text-muted-foreground">
+                  Daily rates managed by admin / एडमिन द्वारा रोज़ अपडेट करें
+                </p>
+              </div>
+            </div>
+            <Separator />
+            <StorageRatesPanel />
+          </CardContent>
+        </Card>
+      )}
 
       {/* Filter tabs */}
       <Tabs

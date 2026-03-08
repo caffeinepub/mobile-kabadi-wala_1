@@ -8,9 +8,7 @@ import Iter "mo:core/Iter";
 
 import MixinStorage "blob-storage/Mixin";
 import Storage "blob-storage/Storage";
-import Migration "migration";
 
-(with migration = Migration.run)
 actor {
   include MixinStorage();
 
@@ -31,11 +29,18 @@ actor {
     pickupDateTime : ?Text;
   };
 
+  type StorageRate = {
+    storage : Text;
+    rate : Nat;
+  };
+
   module MobileListing {
     public func compareBySubmittedAt(listing1 : MobileListing, listing2 : MobileListing) : Order.Order {
       Int.compare(listing2.submittedAt, listing1.submittedAt);
     };
   };
+
+  let storageRates = Map.empty<Text, Nat>();
 
   var nextListingId = 1;
   let listings = Map.empty<Nat, MobileListing>();
@@ -84,6 +89,10 @@ actor {
     listings.values().toArray().sort(MobileListing.compareBySubmittedAt);
   };
 
+  public query ({ caller }) func getListingById(id : Nat) : async ?MobileListing {
+    listings.get(id);
+  };
+
   public shared ({ caller }) func updateListingStatus(id : Nat, status : Text) : async Bool {
     switch (listings.get(id)) {
       case (null) { false };
@@ -110,5 +119,64 @@ actor {
         true;
       };
     };
+  };
+
+  // New Storage Rates Functionality
+  public query ({ caller }) func getStorageRates() : async [StorageRate] {
+    // Only return the 7 main sizes in order
+    let sizes = [
+      "16GB",
+      "32GB",
+      "64GB",
+      "128GB",
+      "256GB",
+      "512GB",
+      "1TB",
+    ];
+
+    if (storageRates.isEmpty()) {
+      return [
+        { storage = "16GB"; rate = 500 },
+        { storage = "32GB"; rate = 800 },
+        { storage = "64GB"; rate = 1200 },
+        { storage = "128GB"; rate = 2000 },
+        { storage = "256GB"; rate = 3200 },
+        { storage = "512GB"; rate = 5000 },
+        { storage = "1TB"; rate = 8000 },
+      ];
+    };
+
+    sizes.map(
+      func(size) {
+        {
+          storage = size;
+          rate = switch (storageRates.get(size)) {
+            case (null) {
+              switch (size) {
+                case ("16GB") { 500 };
+                case ("32GB") { 800 };
+                case ("64GB") { 1200 };
+                case ("128GB") { 2000 };
+                case ("256GB") { 3200 };
+                case ("512GB") { 5000 };
+                case ("1TB") { 8000 };
+                case (_) { 0 };
+              };
+            };
+            case (?r) { r };
+          };
+        };
+      }
+    );
+  };
+
+  public shared ({ caller }) func updateStorageRate(storage : Text, rate : Nat) : async Bool {
+    let validStorages = ["16GB", "32GB", "64GB", "128GB", "256GB", "512GB", "1TB"];
+    var valid = false;
+    for (item in validStorages.values()) { if (Text.equal(item, storage)) { valid := true } };
+    if (not valid) { return false };
+
+    storageRates.add(storage, rate);
+    true;
   };
 };

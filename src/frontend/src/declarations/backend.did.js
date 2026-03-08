@@ -36,6 +36,10 @@ export const MobileListing = IDL.Record({
   'pickupDateTime' : IDL.Opt(IDL.Text),
   'condition' : IDL.Text,
 });
+export const StorageRate = IDL.Record({
+  'storage' : IDL.Text,
+  'rate' : IDL.Nat,
+});
 export const SubmitListingInput = IDL.Record({
   'mobilePhotoBlobId' : IDL.Opt(IDL.Text),
   'storage' : IDL.Text,
@@ -77,10 +81,13 @@ export const idlService = IDL.Service({
     ),
   '_caffeineStorageUpdateGatewayPrincipals' : IDL.Func([], [], []),
   'getAllListings' : IDL.Func([], [IDL.Vec(MobileListing)], ['query']),
+  'getListingById' : IDL.Func([IDL.Nat], [IDL.Opt(MobileListing)], ['query']),
   'getNewListingsCount' : IDL.Func([], [IDL.Nat], ['query']),
+  'getStorageRates' : IDL.Func([], [IDL.Vec(StorageRate)], ['query']),
   'submitListing' : IDL.Func([SubmitListingInput], [IDL.Nat], []),
   'updateListingStatus' : IDL.Func([IDL.Nat, IDL.Text], [IDL.Bool], []),
   'updatePickupDateTime' : IDL.Func([IDL.Nat, IDL.Text], [IDL.Bool], []),
+  'updateStorageRate' : IDL.Func([IDL.Text, IDL.Nat], [IDL.Bool], []),
 });
 
 export const idlInitArgs = [];
@@ -114,6 +121,7 @@ export const idlFactory = ({ IDL }) => {
     'pickupDateTime' : IDL.Opt(IDL.Text),
     'condition' : IDL.Text,
   });
+  const StorageRate = IDL.Record({ 'storage' : IDL.Text, 'rate' : IDL.Nat });
   const SubmitListingInput = IDL.Record({
     'mobilePhotoBlobId' : IDL.Opt(IDL.Text),
     'storage' : IDL.Text,
@@ -155,10 +163,13 @@ export const idlFactory = ({ IDL }) => {
       ),
     '_caffeineStorageUpdateGatewayPrincipals' : IDL.Func([], [], []),
     'getAllListings' : IDL.Func([], [IDL.Vec(MobileListing)], ['query']),
+    'getListingById' : IDL.Func([IDL.Nat], [IDL.Opt(MobileListing)], ['query']),
     'getNewListingsCount' : IDL.Func([], [IDL.Nat], ['query']),
+    'getStorageRates' : IDL.Func([], [IDL.Vec(StorageRate)], ['query']),
     'submitListing' : IDL.Func([SubmitListingInput], [IDL.Nat], []),
     'updateListingStatus' : IDL.Func([IDL.Nat, IDL.Text], [IDL.Bool], []),
     'updatePickupDateTime' : IDL.Func([IDL.Nat, IDL.Text], [IDL.Bool], []),
+    'updateStorageRate' : IDL.Func([IDL.Text, IDL.Nat], [IDL.Bool], []),
   });
 };
 

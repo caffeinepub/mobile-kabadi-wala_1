@@ -27,6 +27,7 @@ export interface MobileListing {
   'pickupDateTime' : [] | [string],
   'condition' : string,
 }
+export interface StorageRate { 'storage' : string, 'rate' : bigint }
 export interface SubmitListingInput {
   'mobilePhotoBlobId' : [] | [string],
   'storage' : string,
@@ -67,10 +68,13 @@ export interface _SERVICE {
   >,
   '_caffeineStorageUpdateGatewayPrincipals' : ActorMethod<[], undefined>,
   'getAllListings' : ActorMethod<[], Array<MobileListing>>,
+  'getListingById' : ActorMethod<[bigint], [] | [MobileListing]>,
   'getNewListingsCount' : ActorMethod<[], bigint>,
+  'getStorageRates' : ActorMethod<[], Array<StorageRate>>,
   'submitListing' : ActorMethod<[SubmitListingInput], bigint>,
   'updateListingStatus' : ActorMethod<[bigint, string], boolean>,
   'updatePickupDateTime' : ActorMethod<[bigint, string], boolean>,
+  'updateStorageRate' : ActorMethod<[string, bigint], boolean>,
 }
 export declare const idlService: IDL.ServiceClass;
 export declare const idlInitArgs: IDL.Type[];

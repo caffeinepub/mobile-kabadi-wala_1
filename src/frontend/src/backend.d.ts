@@ -14,18 +14,6 @@ export class ExternalBlob {
     static fromBytes(blob: Uint8Array<ArrayBuffer>): ExternalBlob;
     withUploadProgress(onProgress: (percentage: number) => void): ExternalBlob;
 }
-export interface SubmitListingInput {
-    mobilePhotoBlobId?: string;
-    storage: string;
-    description: string;
-    sellerName: string;
-    address: string;
-    modelName: string;
-    motherboardPhotoBlobId?: string;
-    brand: string;
-    phoneNumber: string;
-    condition: string;
-}
 export interface MobileListing {
     id: bigint;
     status: string;
@@ -42,10 +30,29 @@ export interface MobileListing {
     pickupDateTime?: string;
     condition: string;
 }
+export interface StorageRate {
+    storage: string;
+    rate: bigint;
+}
+export interface SubmitListingInput {
+    mobilePhotoBlobId?: string;
+    storage: string;
+    description: string;
+    sellerName: string;
+    address: string;
+    modelName: string;
+    motherboardPhotoBlobId?: string;
+    brand: string;
+    phoneNumber: string;
+    condition: string;
+}
 export interface backendInterface {
     getAllListings(): Promise<Array<MobileListing>>;
+    getListingById(id: bigint): Promise<MobileListing | null>;
     getNewListingsCount(): Promise<bigint>;
+    getStorageRates(): Promise<Array<StorageRate>>;
     submitListing(input: SubmitListingInput): Promise<bigint>;
     updateListingStatus(id: bigint, status: string): Promise<boolean>;
     updatePickupDateTime(id: bigint, pickupDateTime: string): Promise<boolean>;
+    updateStorageRate(storage: string, rate: bigint): Promise<boolean>;
 }
