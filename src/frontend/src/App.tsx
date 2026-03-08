@@ -15,12 +15,14 @@ function App() {
   const { data: newCount = 0 } = useQuery({
     queryKey: ["newListingsCount"],
     queryFn: async () => {
-      if (!actor) return 0;
+      if (!actor) throw new Error("Actor not ready");
       const count = await actor.getNewListingsCount();
       return Number(count);
     },
     enabled: !!actor && !isFetching,
     refetchInterval: 30000,
+    staleTime: 0,
+    retry: 3,
   });
 
   return (

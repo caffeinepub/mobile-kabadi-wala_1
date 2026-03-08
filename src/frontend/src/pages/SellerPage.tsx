@@ -166,12 +166,14 @@ function CheckStatusTab({ prefillId }: { prefillId?: bigint | null }) {
   } = useQuery<MobileListing | null>({
     queryKey: ["trackListing", searchedId?.toString() ?? ""],
     queryFn: async () => {
-      if (!actor || searchedId === null) return null;
+      if (!actor || searchedId === null) throw new Error("Actor not ready");
       const result = await actor.getListingById(searchedId);
       return result;
     },
     enabled: !!actor && !actorLoading && searchedId !== null,
     refetchInterval: searchedId !== null ? 30000 : false,
+    staleTime: 0,
+    retry: 3,
   });
 
   // Detect not-found state after query runs
@@ -428,10 +430,12 @@ export function SellerPage() {
   const { data: storageRatesData } = useQuery({
     queryKey: ["storageRates"],
     queryFn: async () => {
-      if (!actor) return [];
+      if (!actor) throw new Error("Actor not ready");
       return actor.getStorageRates();
     },
     enabled: !!actor && !actorLoading,
+    staleTime: 0,
+    retry: 3,
   });
 
   const storageRateMap: Map<string, number> = new Map(
@@ -442,11 +446,13 @@ export function SellerPage() {
   const { data: submittedListing } = useQuery({
     queryKey: ["submittedListing", submittedId?.toString() ?? ""],
     queryFn: async () => {
-      if (!actor || submittedId === null) return null;
+      if (!actor || submittedId === null) throw new Error("Actor not ready");
       return actor.getListingById(submittedId);
     },
     enabled: !!actor && !actorLoading && submitted && submittedId !== null,
     refetchInterval: 30000,
+    staleTime: 0,
+    retry: 3,
   });
 
   const submitMutation = useMutation({

@@ -429,10 +429,12 @@ function StorageRatesPanel() {
   const { data: ratesData, isLoading: ratesLoading } = useQuery({
     queryKey: ["storageRates"],
     queryFn: async () => {
-      if (!actor) return [];
+      if (!actor) throw new Error("Actor not ready");
       return actor.getStorageRates();
     },
     enabled: !!actor && !actorLoading,
+    staleTime: 0,
+    retry: 3,
   });
 
   // Local state for each storage rate input
@@ -700,7 +702,7 @@ export function AdminPage() {
   } = useQuery({
     queryKey: ["allListings"],
     queryFn: async () => {
-      if (!actor) return [];
+      if (!actor) throw new Error("Actor not ready");
       const result = await actor.getAllListings();
       return [...result].sort(
         (a, b) => Number(b.submittedAt) - Number(a.submittedAt),
@@ -708,6 +710,8 @@ export function AdminPage() {
     },
     enabled: !!actor && !actorLoading && isAuthenticated,
     refetchInterval: 30000,
+    staleTime: 0,
+    retry: 3,
   });
 
   const updateStatusMutation = useMutation({
