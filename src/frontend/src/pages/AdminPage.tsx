@@ -50,6 +50,7 @@ const ALL_STORAGE_OPTIONS = [
   "256GB",
   "512GB",
   "1TB",
+  "पता नहीं",
 ];
 
 type StatusFilter =
@@ -516,7 +517,7 @@ function StorageRatesPanel() {
               className="flex items-center gap-3 bg-muted/30 border border-border/40 rounded-lg px-3 py-2"
             >
               {/* Storage label */}
-              <div className="flex items-center gap-1.5 w-16 shrink-0">
+              <div className="flex items-center gap-1.5 w-20 shrink-0">
                 <HardDrive className="w-3.5 h-3.5 text-muted-foreground shrink-0" />
                 <span className="text-sm font-display font-semibold text-foreground">
                   {storage}

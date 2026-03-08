@@ -19,6 +19,7 @@ import {
   Clock,
   Copy,
   HardDrive,
+  HelpCircle,
   IndianRupee,
   Loader2,
   MapPin,
@@ -72,6 +73,7 @@ const STORAGE_OPTIONS = [
   "256GB",
   "512GB",
   "1TB",
+  "पता नहीं",
 ];
 
 const CONDITION_OPTIONS = [
@@ -366,17 +368,17 @@ function CheckStatusTab({ prefillId }: { prefillId?: bigint | null }) {
             {/* Pickup date/time — main focus */}
             {foundListing.pickupDateTime ? (
               <div
-                className="flex items-center gap-3 bg-green-50 border border-green-200 rounded-xl px-4 py-3.5"
+                className="flex items-center gap-3 bg-primary/10 border border-primary/25 rounded-xl px-4 py-3.5"
                 data-ocid="tracker.pickup.success_state"
               >
-                <div className="w-10 h-10 rounded-lg bg-green-100 flex items-center justify-center shrink-0">
-                  <CalendarCheck className="w-5 h-5 text-green-700" />
+                <div className="w-10 h-10 rounded-lg bg-primary/15 flex items-center justify-center shrink-0">
+                  <CalendarCheck className="w-5 h-5 text-primary" />
                 </div>
                 <div>
-                  <p className="text-xs font-semibold text-green-700 font-display">
+                  <p className="text-xs font-semibold text-primary font-display">
                     पिकअप की तारीख और समय / Pickup Scheduled
                   </p>
-                  <p className="text-base font-bold text-green-800">
+                  <p className="text-base font-bold text-primary">
                     {formatPickupForDisplay(foundListing.pickupDateTime)}
                   </p>
                 </div>
@@ -818,7 +820,14 @@ export function SellerPage() {
                         <SelectContent>
                           {STORAGE_OPTIONS.map((s) => (
                             <SelectItem key={s} value={s}>
-                              {s}
+                              {s === "पता नहीं" ? (
+                                <span className="flex items-center gap-1.5">
+                                  <HelpCircle className="w-3.5 h-3.5 text-muted-foreground shrink-0" />
+                                  पता नहीं / Not Known
+                                </span>
+                              ) : (
+                                s
+                              )}
                             </SelectItem>
                           ))}
                         </SelectContent>
@@ -829,17 +838,28 @@ export function SellerPage() {
                         </p>
                       )}
                       {/* Storage rate badge */}
-                      {formData.storage && selectedStorageRate > 0 && (
+                      {formData.storage && formData.storage === "पता नहीं" && (
                         <Badge
-                          className="inline-flex items-center gap-1.5 bg-green-100 text-green-800 border border-green-200 font-semibold text-xs px-2.5 py-1 font-display"
+                          className="inline-flex items-center gap-1.5 bg-amber-100 text-amber-700 border border-amber-200 font-semibold text-xs px-2.5 py-1 font-display"
                           data-ocid="seller.storage.rate_badge"
                         >
-                          <IndianRupee className="w-3 h-3" />
-                          {formData.storage} की रेट: ₹
-                          {selectedStorageRate.toLocaleString("en-IN")} / Rate:
-                          ₹{selectedStorageRate.toLocaleString("en-IN")}
+                          <HelpCircle className="w-3 h-3" />
+                          रेट admin द्वारा तय होगी / Rate set by admin
                         </Badge>
                       )}
+                      {formData.storage &&
+                        formData.storage !== "पता नहीं" &&
+                        selectedStorageRate > 0 && (
+                          <Badge
+                            className="inline-flex items-center gap-1.5 bg-primary/10 text-primary border border-primary/25 font-semibold text-xs px-2.5 py-1 font-display"
+                            data-ocid="seller.storage.rate_badge"
+                          >
+                            <IndianRupee className="w-3 h-3" />
+                            {formData.storage} की रेट: ₹
+                            {selectedStorageRate.toLocaleString("en-IN")} /
+                            Rate: ₹{selectedStorageRate.toLocaleString("en-IN")}
+                          </Badge>
+                        )}
                     </div>
 
                     {/* Condition */}

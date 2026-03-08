@@ -2,10 +2,9 @@ import Map "mo:core/Map";
 import Array "mo:core/Array";
 import Time "mo:core/Time";
 import Int "mo:core/Int";
-import Order "mo:core/Order";
 import Text "mo:core/Text";
+import Order "mo:core/Order";
 import Iter "mo:core/Iter";
-
 import MixinStorage "blob-storage/Mixin";
 import Storage "blob-storage/Storage";
 
@@ -34,16 +33,16 @@ actor {
     rate : Nat;
   };
 
+  // Custom ordering for sorting listings by submittedAt
   module MobileListing {
     public func compareBySubmittedAt(listing1 : MobileListing, listing2 : MobileListing) : Order.Order {
-      Int.compare(listing2.submittedAt, listing1.submittedAt);
+      Int.compare(listing2.submittedAt, listing1.submittedAt); // Descending order
     };
   };
 
-  let storageRates = Map.empty<Text, Nat>();
-
   var nextListingId = 1;
-  let listings = Map.empty<Nat, MobileListing>();
+  var listings = Map.empty<Nat, MobileListing>();
+  var storageRates = Map.empty<Text, Nat>();
 
   public type SubmitListingInput = {
     brand : Text;
@@ -121,9 +120,8 @@ actor {
     };
   };
 
-  // New Storage Rates Functionality
+  // New Storage Rates Functionality (including "पता नहीं")
   public query ({ caller }) func getStorageRates() : async [StorageRate] {
-    // Only return the 7 main sizes in order
     let sizes = [
       "16GB",
       "32GB",
@@ -132,8 +130,10 @@ actor {
       "256GB",
       "512GB",
       "1TB",
+      "पता नहीं", // Add "पता नहीं" as the last option
     ];
 
+    // Default rates including "पता नहीं"
     if (storageRates.isEmpty()) {
       return [
         { storage = "16GB"; rate = 500 },
@@ -143,6 +143,7 @@ actor {
         { storage = "256GB"; rate = 3200 },
         { storage = "512GB"; rate = 5000 },
         { storage = "1TB"; rate = 8000 },
+        { storage = "पता नहीं"; rate = 0 },
       ];
     };
 
@@ -160,6 +161,7 @@ actor {
                 case ("256GB") { 3200 };
                 case ("512GB") { 5000 };
                 case ("1TB") { 8000 };
+                case ("पता नहीं") { 0 };
                 case (_) { 0 };
               };
             };
@@ -171,7 +173,16 @@ actor {
   };
 
   public shared ({ caller }) func updateStorageRate(storage : Text, rate : Nat) : async Bool {
-    let validStorages = ["16GB", "32GB", "64GB", "128GB", "256GB", "512GB", "1TB"];
+    let validStorages = [
+      "16GB",
+      "32GB",
+      "64GB",
+      "128GB",
+      "256GB",
+      "512GB",
+      "1TB",
+      "पता नहीं", // Include "पता नहीं" as valid storage
+    ];
     var valid = false;
     for (item in validStorages.values()) { if (Text.equal(item, storage)) { valid := true } };
     if (not valid) { return false };

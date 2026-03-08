@@ -1,6 +1,5 @@
 import { Badge } from "@/components/ui/badge";
 import { Button } from "@/components/ui/button";
-import { Smartphone } from "lucide-react";
 
 type Page = "sell" | "admin";
 
@@ -16,8 +15,12 @@ export function Header({ currentPage, onNavigate, newCount }: HeaderProps) {
       <div className="max-w-5xl mx-auto px-4 py-3 flex items-center justify-between gap-4">
         {/* Logo */}
         <div className="flex items-center gap-2.5 min-w-0">
-          <div className="flex-shrink-0 w-9 h-9 rounded-xl bg-primary flex items-center justify-center shadow-glow">
-            <Smartphone className="w-5 h-5 text-primary-foreground" />
+          <div className="flex-shrink-0 w-10 h-10 rounded-xl overflow-hidden shadow-glow">
+            <img
+              src="/assets/generated/mobile-kabadi-wala-logo-green-black.dim_512x512.png"
+              alt="Mobile Kabadi Wala Logo"
+              className="w-full h-full object-cover"
+            />
           </div>
           <div className="min-w-0">
             <h1 className="font-display font-bold text-base sm:text-lg leading-tight text-foreground truncate">
