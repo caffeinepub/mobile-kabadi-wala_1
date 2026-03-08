@@ -1,0 +1,126 @@
+@tailwind base;
+@tailwind components;
+@tailwind utilities;
+
+/* Cabinet Grotesk — display/headings */
+@font-face {
+  font-family: "Cabinet Grotesk";
+  src: url("/assets/fonts/CabinetGrotesk-Variable.woff2") format("woff2");
+  font-weight: 100 900;
+  font-display: swap;
+}
+
+/* Outfit — body/UI */
+@font-face {
+  font-family: "Outfit";
+  src: url("/assets/fonts/Outfit-Variable.woff2") format("woff2");
+  font-weight: 100 900;
+  font-display: swap;
+}
+
+@layer base {
+  :root {
+    --radius: 0.75rem;
+
+    /* Green-blue trustworthy palette */
+    --background: 0.97 0.008 120;
+    --foreground: 0.18 0.025 240;
+
+    --card: 0.99 0.003 120;
+    --card-foreground: 0.18 0.025 240;
+
+    --popover: 0.99 0.003 120;
+    --popover-foreground: 0.18 0.025 240;
+
+    /* Primary: vibrant green */
+    --primary: 0.52 0.155 152;
+    --primary-foreground: 0.99 0 0;
+
+    /* Secondary: soft teal-blue */
+    --secondary: 0.91 0.04 210;
+    --secondary-foreground: 0.25 0.06 220;
+
+    --muted: 0.93 0.015 140;
+    --muted-foreground: 0.52 0.025 220;
+
+    /* Accent: sky blue */
+    --accent: 0.88 0.06 230;
+    --accent-foreground: 0.2 0.07 240;
+
+    --destructive: 0.577 0.245 27.325;
+    --destructive-foreground: 0.985 0 0;
+
+    --border: 0.87 0.025 160;
+    --input: 0.87 0.025 160;
+    --ring: 0.52 0.155 152;
+
+    /* Status colors */
+    --status-new: 0.55 0.18 230;
+    --status-reviewed: 0.72 0.16 80;
+    --status-offer: 0.65 0.18 48;
+    --status-purchased: 0.52 0.155 152;
+    --status-rejected: 0.577 0.245 27.325;
+
+    /* Chart */
+    --chart-1: 0.52 0.155 152;
+    --chart-2: 0.55 0.18 230;
+    --chart-3: 0.65 0.18 48;
+    --chart-4: 0.72 0.16 80;
+    --chart-5: 0.577 0.245 27.325;
+
+    --sidebar: 0.96 0.012 145;
+    --sidebar-foreground: 0.18 0.025 240;
+    --sidebar-primary: 0.52 0.155 152;
+    --sidebar-primary-foreground: 0.99 0 0;
+    --sidebar-accent: 0.91 0.04 210;
+    --sidebar-accent-foreground: 0.25 0.06 220;
+    --sidebar-border: 0.87 0.025 160;
+    --sidebar-ring: 0.52 0.155 152;
+  }
+
+  * {
+    @apply border-border;
+  }
+
+  body {
+    @apply bg-background text-foreground font-body;
+  }
+
+  h1, h2, h3, h4, h5, h6 {
+    @apply font-display;
+  }
+}
+
+@layer utilities {
+  .font-display {
+    font-family: "Cabinet Grotesk", sans-serif;
+  }
+  .font-body {
+    font-family: "Outfit", sans-serif;
+  }
+
+  /* New listing highlight pulse */
+  .listing-new {
+    @apply border-l-4 border-l-primary bg-accent/30;
+    animation: new-pulse 2s ease-in-out 3;
+  }
+
+  @keyframes new-pulse {
+    0%, 100% { background-color: oklch(var(--accent) / 0.3); }
+    50% { background-color: oklch(var(--accent) / 0.6); }
+  }
+
+  /* Gradient mesh background for hero */
+  .hero-gradient {
+    background: 
+      radial-gradient(ellipse 80% 60% at 20% 40%, oklch(0.88 0.06 152 / 0.5) 0%, transparent 60%),
+      radial-gradient(ellipse 60% 80% at 80% 20%, oklch(0.88 0.06 230 / 0.4) 0%, transparent 60%),
+      oklch(var(--background));
+  }
+
+  /* Card glass effect */
+  .card-glass {
+    backdrop-filter: blur(8px);
+    background: oklch(var(--card) / 0.9);
+  }
+}
