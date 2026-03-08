@@ -15,6 +15,8 @@ import { Tabs, TabsList, TabsTrigger } from "@/components/ui/tabs";
 import { useMutation, useQuery, useQueryClient } from "@tanstack/react-query";
 import {
   AlertCircle,
+  Calendar,
+  CalendarCheck,
   Clock,
   HardDrive,
   LayoutDashboard,
@@ -167,6 +169,60 @@ function PhotoThumbnail({
   );
 }
 
+function parsePickupDateTime(pickupDateTime?: string): {
+  date: string;
+  time: string;
+} {
+  if (!pickupDateTime) return { date: "", time: "" };
+  // Expected format: "12 Mar 2026, 2:30 PM"
+  try {
+    const dateObj = new Date(pickupDateTime);
+    if (!Number.isNaN(dateObj.getTime())) {
+      const yyyy = dateObj.getFullYear();
+      const mm = String(dateObj.getMonth() + 1).padStart(2, "0");
+      const dd = String(dateObj.getDate()).padStart(2, "0");
+      const HH = String(dateObj.getHours()).padStart(2, "0");
+      const MM = String(dateObj.getMinutes()).padStart(2, "0");
+      return { date: `${yyyy}-${mm}-${dd}`, time: `${HH}:${MM}` };
+    }
+  } catch {
+    // Fallback: leave empty
+  }
+  return { date: "", time: "" };
+}
+
+function formatPickupForDisplay(pickupDateTime: string): string {
+  try {
+    const d = new Date(pickupDateTime);
+    if (!Number.isNaN(d.getTime())) {
+      return d.toLocaleString("en-IN", {
+        day: "numeric",
+        month: "short",
+        year: "numeric",
+        hour: "numeric",
+        minute: "2-digit",
+        hour12: true,
+      });
+    }
+  } catch {
+    // Fallback to raw string
+  }
+  return pickupDateTime;
+}
+
+function buildPickupDateTimeString(date: string, time: string): string {
+  // Combine YYYY-MM-DD + HH:MM into a parseable datetime, return readable format
+  const dateObj = new Date(`${date}T${time || "00:00"}`);
+  return dateObj.toLocaleString("en-IN", {
+    day: "numeric",
+    month: "short",
+    year: "numeric",
+    hour: "numeric",
+    minute: "2-digit",
+    hour12: true,
+  });
+}
+
 function ListingCard({
   listing,
   index,
@@ -183,6 +239,31 @@ function ListingCard({
   const hasMobilePhoto = !!listing.mobilePhoto;
   const hasMotherboardPhoto = !!listing.motherboardPhoto;
   const hasPhotos = hasMobilePhoto || hasMotherboardPhoto;
+
+  // Pickup date/time state
+  const parsed = parsePickupDateTime(listing.pickupDateTime);
+  const [pickupDate, setPickupDate] = useState(parsed.date);
+  const [pickupTime, setPickupTime] = useState(parsed.time);
+
+  const queryClient = useQueryClient();
+  const { actor } = useActor();
+
+  const pickupMutation = useMutation({
+    mutationFn: async ({ date, time }: { date: string; time: string }) => {
+      if (!actor) throw new Error("Actor not ready");
+      const combined = buildPickupDateTimeString(date, time);
+      const success = await actor.updatePickupDateTime(listing.id, combined);
+      if (!success) throw new Error("Update failed");
+      return combined;
+    },
+    onSuccess: () => {
+      toast.success("पिकअप टाइम सेट हो गया / Pickup time saved");
+      queryClient.invalidateQueries({ queryKey: ["allListings"] });
+    },
+    onError: () => {
+      toast.error("पिकअप टाइम सेट नहीं हुआ / Failed to save pickup time");
+    },
+  });
 
   return (
     <Card
@@ -289,6 +370,77 @@ function ListingCard({
               )}
             </SelectContent>
           </Select>
+        </div>
+
+        {/* Pickup Date & Time Section */}
+        <div
+          className="pt-3 border-t border-border/40 space-y-2.5"
+          data-ocid={`admin.pickup.panel.${ocidIndex}`}
+        >
+          {/* Existing pickup display */}
+          {listing.pickupDateTime && (
+            <div className="flex items-center gap-2 bg-primary/8 border border-primary/20 rounded-lg px-3 py-2">
+              <CalendarCheck className="w-4 h-4 text-primary shrink-0" />
+              <div>
+                <p className="text-xs font-semibold text-primary font-display">
+                  पिकअप / Pickup
+                </p>
+                <p className="text-sm font-bold text-foreground">
+                  {formatPickupForDisplay(listing.pickupDateTime)}
+                </p>
+              </div>
+            </div>
+          )}
+
+          {/* Edit inputs */}
+          <div className="space-y-1.5">
+            <div className="flex items-center gap-1 mb-1">
+              <Calendar className="w-3.5 h-3.5 text-muted-foreground" />
+              <span className="text-xs font-semibold text-muted-foreground font-display">
+                पिकअप तारीख और समय सेट करें / Set Pickup Date & Time
+              </span>
+            </div>
+            <div className="flex flex-wrap items-center gap-2">
+              <input
+                type="date"
+                value={pickupDate}
+                onChange={(e) => setPickupDate(e.target.value)}
+                className="h-9 rounded-md border border-input bg-background px-3 py-1 text-sm text-foreground shadow-sm focus:outline-none focus:ring-2 focus:ring-ring focus:ring-offset-0 transition-colors min-w-[140px]"
+                data-ocid={`admin.pickup.date.input.${ocidIndex}`}
+              />
+              <input
+                type="time"
+                value={pickupTime}
+                onChange={(e) => setPickupTime(e.target.value)}
+                className="h-9 rounded-md border border-input bg-background px-3 py-1 text-sm text-foreground shadow-sm focus:outline-none focus:ring-2 focus:ring-ring focus:ring-offset-0 transition-colors min-w-[110px]"
+                data-ocid={`admin.pickup.time.input.${ocidIndex}`}
+              />
+              <Button
+                size="sm"
+                variant="outline"
+                disabled={
+                  !pickupDate || !pickupTime || pickupMutation.isPending
+                }
+                onClick={() =>
+                  pickupMutation.mutate({ date: pickupDate, time: pickupTime })
+                }
+                className="h-9 font-display font-semibold text-xs border-primary/40 text-primary hover:bg-primary hover:text-primary-foreground transition-colors"
+                data-ocid={`admin.pickup.save_button.${ocidIndex}`}
+              >
+                {pickupMutation.isPending ? (
+                  <>
+                    <Loader2 className="mr-1.5 h-3.5 w-3.5 animate-spin" />
+                    सेव हो रहा है...
+                  </>
+                ) : (
+                  <>
+                    <CalendarCheck className="mr-1.5 h-3.5 w-3.5" />
+                    पिकअप सेट करें / Set Pickup
+                  </>
+                )}
+              </Button>
+            </div>
+          </div>
         </div>
       </CardContent>
     </Card>

@@ -114,6 +114,7 @@ export interface MobileListing {
     brand: string;
     phoneNumber: string;
     motherboardPhoto?: ExternalBlob;
+    pickupDateTime?: string;
     condition: string;
 }
 export interface _CaffeineStorageCreateCertificateResult {
@@ -138,6 +139,7 @@ export interface backendInterface {
     getNewListingsCount(): Promise<bigint>;
     submitListing(input: SubmitListingInput): Promise<bigint>;
     updateListingStatus(id: bigint, status: string): Promise<boolean>;
+    updatePickupDateTime(id: bigint, pickupDateTime: string): Promise<boolean>;
 }
 import type { ExternalBlob as _ExternalBlob, MobileListing as _MobileListing, SubmitListingInput as _SubmitListingInput, _CaffeineStorageRefillInformation as __CaffeineStorageRefillInformation, _CaffeineStorageRefillResult as __CaffeineStorageRefillResult } from "./declarations/backend.did.d.ts";
 export class Backend implements backendInterface {
@@ -257,14 +259,14 @@ export class Backend implements backendInterface {
     async submitListing(arg0: SubmitListingInput): Promise<bigint> {
         if (this.processError) {
             try {
-                const result = await this.actor.submitListing(to_candid_SubmitListingInput_n13(this._uploadFile, this._downloadFile, arg0));
+                const result = await this.actor.submitListing(to_candid_SubmitListingInput_n14(this._uploadFile, this._downloadFile, arg0));
                 return result;
             } catch (e) {
                 this.processError(e);
                 throw new Error("unreachable");
             }
         } else {
-            const result = await this.actor.submitListing(to_candid_SubmitListingInput_n13(this._uploadFile, this._downloadFile, arg0));
+            const result = await this.actor.submitListing(to_candid_SubmitListingInput_n14(this._uploadFile, this._downloadFile, arg0));
             return result;
         }
     }
@@ -282,6 +284,20 @@ export class Backend implements backendInterface {
             return result;
         }
     }
+    async updatePickupDateTime(arg0: bigint, arg1: string): Promise<boolean> {
+        if (this.processError) {
+            try {
+                const result = await this.actor.updatePickupDateTime(arg0, arg1);
+                return result;
+            } catch (e) {
+                this.processError(e);
+                throw new Error("unreachable");
+            }
+        } else {
+            const result = await this.actor.updatePickupDateTime(arg0, arg1);
+            return result;
+        }
+    }
 }
 async function from_candid_ExternalBlob_n12(_uploadFile: (file: ExternalBlob) => Promise<Uint8Array>, _downloadFile: (file: Uint8Array) => Promise<ExternalBlob>, value: _ExternalBlob): Promise<ExternalBlob> {
     return await _downloadFile(value);
@@ -294,6 +310,9 @@ function from_candid__CaffeineStorageRefillResult_n4(_uploadFile: (file: Externa
 }
 async function from_candid_opt_n11(_uploadFile: (file: ExternalBlob) => Promise<Uint8Array>, _downloadFile: (file: Uint8Array) => Promise<ExternalBlob>, value: [] | [_ExternalBlob]): Promise<ExternalBlob | null> {
     return value.length === 0 ? null : await from_candid_ExternalBlob_n12(_uploadFile, _downloadFile, value[0]);
+}
+function from_candid_opt_n13(_uploadFile: (file: ExternalBlob) => Promise<Uint8Array>, _downloadFile: (file: Uint8Array) => Promise<ExternalBlob>, value: [] | [string]): string | null {
+    return value.length === 0 ? null : value[0];
 }
 function from_candid_opt_n6(_uploadFile: (file: ExternalBlob) => Promise<Uint8Array>, _downloadFile: (file: Uint8Array) => Promise<ExternalBlob>, value: [] | [boolean]): boolean | null {
     return value.length === 0 ? null : value[0];
@@ -314,6 +333,7 @@ async function from_candid_record_n10(_uploadFile: (file: ExternalBlob) => Promi
     brand: string;
     phoneNumber: string;
     motherboardPhoto: [] | [_ExternalBlob];
+    pickupDateTime: [] | [string];
     condition: string;
 }): Promise<{
     id: bigint;
@@ -328,6 +348,7 @@ async function from_candid_record_n10(_uploadFile: (file: ExternalBlob) => Promi
     brand: string;
     phoneNumber: string;
     motherboardPhoto?: ExternalBlob;
+    pickupDateTime?: string;
     condition: string;
 }> {
     return {
@@ -343,6 +364,7 @@ async function from_candid_record_n10(_uploadFile: (file: ExternalBlob) => Promi
         brand: value.brand,
         phoneNumber: value.phoneNumber,
         motherboardPhoto: record_opt_to_undefined(await from_candid_opt_n11(_uploadFile, _downloadFile, value.motherboardPhoto)),
+        pickupDateTime: record_opt_to_undefined(from_candid_opt_n13(_uploadFile, _downloadFile, value.pickupDateTime)),
         condition: value.condition
     };
 }
@@ -361,8 +383,8 @@ function from_candid_record_n5(_uploadFile: (file: ExternalBlob) => Promise<Uint
 async function from_candid_vec_n8(_uploadFile: (file: ExternalBlob) => Promise<Uint8Array>, _downloadFile: (file: Uint8Array) => Promise<ExternalBlob>, value: Array<_MobileListing>): Promise<Array<MobileListing>> {
     return await Promise.all(value.map(async (x)=>await from_candid_MobileListing_n9(_uploadFile, _downloadFile, x)));
 }
-function to_candid_SubmitListingInput_n13(_uploadFile: (file: ExternalBlob) => Promise<Uint8Array>, _downloadFile: (file: Uint8Array) => Promise<ExternalBlob>, value: SubmitListingInput): _SubmitListingInput {
-    return to_candid_record_n14(_uploadFile, _downloadFile, value);
+function to_candid_SubmitListingInput_n14(_uploadFile: (file: ExternalBlob) => Promise<Uint8Array>, _downloadFile: (file: Uint8Array) => Promise<ExternalBlob>, value: SubmitListingInput): _SubmitListingInput {
+    return to_candid_record_n15(_uploadFile, _downloadFile, value);
 }
 function to_candid__CaffeineStorageRefillInformation_n2(_uploadFile: (file: ExternalBlob) => Promise<Uint8Array>, _downloadFile: (file: Uint8Array) => Promise<ExternalBlob>, value: _CaffeineStorageRefillInformation): __CaffeineStorageRefillInformation {
     return to_candid_record_n3(_uploadFile, _downloadFile, value);
@@ -370,7 +392,7 @@ function to_candid__CaffeineStorageRefillInformation_n2(_uploadFile: (file: Exte
 function to_candid_opt_n1(_uploadFile: (file: ExternalBlob) => Promise<Uint8Array>, _downloadFile: (file: Uint8Array) => Promise<ExternalBlob>, value: _CaffeineStorageRefillInformation | null): [] | [__CaffeineStorageRefillInformation] {
     return value === null ? candid_none() : candid_some(to_candid__CaffeineStorageRefillInformation_n2(_uploadFile, _downloadFile, value));
 }
-function to_candid_record_n14(_uploadFile: (file: ExternalBlob) => Promise<Uint8Array>, _downloadFile: (file: Uint8Array) => Promise<ExternalBlob>, value: {
+function to_candid_record_n15(_uploadFile: (file: ExternalBlob) => Promise<Uint8Array>, _downloadFile: (file: Uint8Array) => Promise<ExternalBlob>, value: {
     mobilePhotoBlobId?: string;
     storage: string;
     description: string;

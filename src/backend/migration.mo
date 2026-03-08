@@ -1,5 +1,4 @@
 import Map "mo:core/Map";
-import Nat "mo:core/Nat";
 import Int "mo:core/Int";
 import Storage "blob-storage/Storage";
 
@@ -12,6 +11,8 @@ module {
     condition : Text;
     address : Text;
     description : Text;
+    mobilePhoto : ?Storage.ExternalBlob;
+    motherboardPhoto : ?Storage.ExternalBlob;
     sellerName : Text;
     phoneNumber : Text;
     status : Text;
@@ -19,8 +20,8 @@ module {
   };
 
   type OldActor = {
-    listings : Map.Map<Nat, OldMobileListing>;
     nextListingId : Nat;
+    listings : Map.Map<Nat, OldMobileListing>;
   };
 
   type NewMobileListing = {
@@ -37,21 +38,18 @@ module {
     phoneNumber : Text;
     status : Text;
     submittedAt : Int;
+    pickupDateTime : ?Text;
   };
 
   type NewActor = {
-    listings : Map.Map<Nat, NewMobileListing>;
     nextListingId : Nat;
+    listings : Map.Map<Nat, NewMobileListing>;
   };
 
   public func run(old : OldActor) : NewActor {
     let newListings = old.listings.map<Nat, OldMobileListing, NewMobileListing>(
       func(_id, oldListing) {
-        {
-          oldListing with
-          mobilePhoto = null : ?Storage.ExternalBlob;
-          motherboardPhoto = null : ?Storage.ExternalBlob;
-        };
+        { oldListing with pickupDateTime = null };
       }
     );
     { old with listings = newListings };

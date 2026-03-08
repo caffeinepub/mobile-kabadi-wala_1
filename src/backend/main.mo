@@ -1,16 +1,16 @@
 import Map "mo:core/Map";
 import Array "mo:core/Array";
 import Time "mo:core/Time";
-import Nat "mo:core/Nat";
 import Int "mo:core/Int";
 import Order "mo:core/Order";
-import Iter "mo:core/Iter";
 import Text "mo:core/Text";
+import Iter "mo:core/Iter";
 
 import MixinStorage "blob-storage/Mixin";
 import Storage "blob-storage/Storage";
+import Migration "migration";
 
-
+(with migration = Migration.run)
 actor {
   include MixinStorage();
 
@@ -28,6 +28,7 @@ actor {
     phoneNumber : Text;
     status : Text;
     submittedAt : Int;
+    pickupDateTime : ?Text;
   };
 
   module MobileListing {
@@ -72,6 +73,7 @@ actor {
       phoneNumber = input.phoneNumber;
       status = "New";
       submittedAt = Time.now();
+      pickupDateTime = null;
     };
 
     listings.add(id, newListing);
@@ -95,7 +97,18 @@ actor {
 
   public query ({ caller }) func getNewListingsCount() : async Nat {
     listings.values().toArray().filter(
-      func(l) { l.status == "New" }
+      func(l) { l.status == "New" },
     ).size();
+  };
+
+  public shared ({ caller }) func updatePickupDateTime(id : Nat, pickupDateTime : Text) : async Bool {
+    switch (listings.get(id)) {
+      case (null) { false };
+      case (?listing) {
+        let updatedListing = { listing with pickupDateTime = ?pickupDateTime };
+        listings.add(id, updatedListing);
+        true;
+      };
+    };
   };
 };

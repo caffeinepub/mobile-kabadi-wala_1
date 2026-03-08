@@ -24,6 +24,7 @@ export interface MobileListing {
   'brand' : string,
   'phoneNumber' : string,
   'motherboardPhoto' : [] | [ExternalBlob],
+  'pickupDateTime' : [] | [string],
   'condition' : string,
 }
 export interface SubmitListingInput {
@@ -69,6 +70,7 @@ export interface _SERVICE {
   'getNewListingsCount' : ActorMethod<[], bigint>,
   'submitListing' : ActorMethod<[SubmitListingInput], bigint>,
   'updateListingStatus' : ActorMethod<[bigint, string], boolean>,
+  'updatePickupDateTime' : ActorMethod<[bigint, string], boolean>,
 }
 export declare const idlService: IDL.ServiceClass;
 export declare const idlInitArgs: IDL.Type[];

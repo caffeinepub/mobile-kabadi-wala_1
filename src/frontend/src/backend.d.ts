@@ -39,6 +39,7 @@ export interface MobileListing {
     brand: string;
     phoneNumber: string;
     motherboardPhoto?: ExternalBlob;
+    pickupDateTime?: string;
     condition: string;
 }
 export interface backendInterface {
@@ -46,4 +47,5 @@ export interface backendInterface {
     getNewListingsCount(): Promise<bigint>;
     submitListing(input: SubmitListingInput): Promise<bigint>;
     updateListingStatus(id: bigint, status: string): Promise<boolean>;
+    updatePickupDateTime(id: bigint, pickupDateTime: string): Promise<boolean>;
 }

@@ -33,6 +33,7 @@ export const MobileListing = IDL.Record({
   'brand' : IDL.Text,
   'phoneNumber' : IDL.Text,
   'motherboardPhoto' : IDL.Opt(ExternalBlob),
+  'pickupDateTime' : IDL.Opt(IDL.Text),
   'condition' : IDL.Text,
 });
 export const SubmitListingInput = IDL.Record({
@@ -79,6 +80,7 @@ export const idlService = IDL.Service({
   'getNewListingsCount' : IDL.Func([], [IDL.Nat], ['query']),
   'submitListing' : IDL.Func([SubmitListingInput], [IDL.Nat], []),
   'updateListingStatus' : IDL.Func([IDL.Nat, IDL.Text], [IDL.Bool], []),
+  'updatePickupDateTime' : IDL.Func([IDL.Nat, IDL.Text], [IDL.Bool], []),
 });
 
 export const idlInitArgs = [];
@@ -109,6 +111,7 @@ export const idlFactory = ({ IDL }) => {
     'brand' : IDL.Text,
     'phoneNumber' : IDL.Text,
     'motherboardPhoto' : IDL.Opt(ExternalBlob),
+    'pickupDateTime' : IDL.Opt(IDL.Text),
     'condition' : IDL.Text,
   });
   const SubmitListingInput = IDL.Record({
@@ -155,6 +158,7 @@ export const idlFactory = ({ IDL }) => {
     'getNewListingsCount' : IDL.Func([], [IDL.Nat], ['query']),
     'submitListing' : IDL.Func([SubmitListingInput], [IDL.Nat], []),
     'updateListingStatus' : IDL.Func([IDL.Nat, IDL.Text], [IDL.Bool], []),
+    'updatePickupDateTime' : IDL.Func([IDL.Nat, IDL.Text], [IDL.Bool], []),
   });
 };
 

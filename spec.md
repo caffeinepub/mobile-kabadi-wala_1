@@ -1,32 +1,30 @@
 # Mobile Kabadi Wala
 
 ## Current State
-- Full-stack web app with Motoko backend and React frontend
-- Seller form with mobile details, address, and optional photo upload
-- Admin panel with password protection (Afifa@7862)
-- No PWA support -- no manifest, no service worker, no mobile meta tags
+- Seller form: brand, model, storage, condition, address, seller name, phone, optional mobile/motherboard photo upload
+- Admin panel: password protected (Afifa@7862), shows all listings with status management (New/Reviewed/Offer Made/Purchased/Rejected), filter tabs, refresh button
+- Backend: MobileListing type with id, brand, modelName, storage, condition, address, description, mobilePhoto, motherboardPhoto, sellerName, phoneNumber, status, submittedAt
+- Backend API: submitListing, getAllListings, updateListingStatus, getNewListingsCount
 
 ## Requested Changes (Diff)
 
 ### Add
-- `public/manifest.json` -- Web App Manifest with app name, icons, theme color, display mode
-- `public/sw.js` -- Service Worker for basic offline support and caching
-- `public/icons/` -- App icons in multiple sizes (192x192, 512x512)
-- PWA meta tags in `index.html` (theme-color, apple-touch-icon, mobile-web-app-capable, etc.)
-- Link to manifest in `index.html`
-- Service worker registration script in `main.tsx` or `index.html`
+- Admin panel: For each listing card, add a "Pickup Date & Time" section where admin can set a date and time for pickup
+- Store pickup date/time as a string field (e.g. "setPickupDateTime") on the listing in backend
+- New backend function: updatePickupDateTime(id: Nat, pickupDateTime: Text) : async Bool
+- MobileListing type: add pickupDateTime: ?Text field
+- In listing card: show the pickup date/time if already set, with a calendar/clock icon
+- Admin can edit the pickup date/time using a date picker and time input
+- Once set, the pickup date/time is visible on the listing card in admin panel
 
 ### Modify
-- `index.html` -- Add PWA meta tags, manifest link, title "Mobile Kabadi Wala"
-- `vite.config.js` -- No changes needed (vite-plugin-pwa not required for basic PWA)
+- Backend main.mo: add pickupDateTime field to MobileListing, add updatePickupDateTime function
+- Frontend AdminPage.tsx: add pickup date/time UI to ListingCard component
 
 ### Remove
-- Nothing
+- Nothing removed
 
 ## Implementation Plan
-1. Generate app icon image (mobile/recycling theme)
-2. Create `src/frontend/public/manifest.json` with name, short_name, icons, theme_color, background_color, display: standalone
-3. Create `src/frontend/public/sw.js` with basic cache-first strategy for static assets
-4. Update `index.html` with full PWA meta tags and manifest link
-5. Add service worker registration in `main.tsx`
-6. Validate and deploy
+1. Update backend main.mo: add `pickupDateTime: ?Text` to MobileListing type, update newListing creation, add `updatePickupDateTime` public shared function
+2. Update backend.d.ts: add pickupDateTime field to MobileListing interface, add updatePickupDateTime method to backendInterface
+3. Update AdminPage.tsx: in ListingCard, add pickup date/time display (if set) and an inline edit UI (date input + time input + save button) for admin to set/update pickup date/time
