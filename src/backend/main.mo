@@ -6,11 +6,11 @@ import Int "mo:core/Int";
 import Order "mo:core/Order";
 import Iter "mo:core/Iter";
 import Text "mo:core/Text";
-import Migration "migration";
+
 import MixinStorage "blob-storage/Mixin";
 import Storage "blob-storage/Storage";
 
-(with migration = Migration.run)
+
 actor {
   include MixinStorage();
 
