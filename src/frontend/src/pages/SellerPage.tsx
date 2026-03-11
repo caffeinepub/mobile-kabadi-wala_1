@@ -11,7 +11,6 @@ import {
   SelectValue,
 } from "@/components/ui/select";
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
-import { Textarea } from "@/components/ui/textarea";
 import { useMutation, useQuery, useQueryClient } from "@tanstack/react-query";
 import {
   CalendarCheck,
@@ -23,6 +22,7 @@ import {
   IndianRupee,
   Loader2,
   MapPin,
+  MessageCircle,
   Phone,
   Search,
   Smartphone,
@@ -39,7 +39,10 @@ interface FormData {
   modelName: string;
   storage: string;
   condition: string;
-  address: string;
+  houseNo: string;
+  street: string;
+  city: string;
+  pincode: string;
   sellerName: string;
   phoneNumber: string;
 }
@@ -49,7 +52,10 @@ const initialFormData: FormData = {
   modelName: "",
   storage: "",
   condition: "",
-  address: "",
+  houseNo: "",
+  street: "",
+  city: "",
+  pincode: "",
   sellerName: "",
   phoneNumber: "",
 };
@@ -196,7 +202,6 @@ function CheckStatusTab({ prefillId }: { prefillId?: bigint | null }) {
     }
     const id = BigInt(trimmed);
     if (id === searchedId) {
-      // Same ID, re-trigger fetch
       refetch();
     } else {
       setNotFound(false);
@@ -457,16 +462,18 @@ export function SellerPage() {
     retry: 3,
   });
 
+  const combinedAddress = `${formData.houseNo}, ${formData.street}, ${formData.city} - ${formData.pincode}`;
+
   const submitMutation = useMutation({
     mutationFn: async (data: FormData) => {
       if (!actor) throw new Error("Actor not ready");
-
+      const address = `${data.houseNo}, ${data.street}, ${data.city} - ${data.pincode}`;
       return actor.submitListing({
         brand: data.brand,
         modelName: data.modelName,
         storage: data.storage,
         condition: data.condition,
-        address: data.address,
+        address,
         description: "",
         sellerName: data.sellerName,
         phoneNumber: data.phoneNumber,
@@ -494,8 +501,16 @@ export function SellerPage() {
       newErrors.modelName = "मॉडल नाम लिखें / Enter model name";
     if (!formData.storage) newErrors.storage = "स्टोरेज चुनें / Select storage";
     if (!formData.condition) newErrors.condition = "हालत चुनें / Select condition";
-    if (!formData.address.trim())
-      newErrors.address = "एड्रेस लिखें / Enter address";
+    if (!formData.houseNo.trim())
+      newErrors.houseNo = "घर/दुकान नंबर लिखें / Enter house number";
+    if (!formData.street.trim())
+      newErrors.street = "गली/मोहल्ला लिखें / Enter street & area";
+    if (!formData.city.trim()) newErrors.city = "शहर लिखें / Enter city";
+    if (!formData.pincode.trim()) {
+      newErrors.pincode = "पिनकोड लिखें / Enter pincode";
+    } else if (!/^\d{6}$/.test(formData.pincode.trim())) {
+      newErrors.pincode = "6 अंकों का पिनकोड / 6-digit pincode";
+    }
     if (!formData.sellerName.trim())
       newErrors.sellerName = "नाम लिखें / Enter name";
     if (!formData.phoneNumber.trim()) {
@@ -604,7 +619,7 @@ export function SellerPage() {
                 <p className="text-muted-foreground">
                   {formData.storage} • {formData.condition}
                 </p>
-                <p className="text-muted-foreground">📍 {formData.address}</p>
+                <p className="text-muted-foreground">📍 {combinedAddress}</p>
                 <p className="text-muted-foreground">
                   📞 {formData.phoneNumber}
                 </p>
@@ -643,7 +658,6 @@ export function SellerPage() {
               <div className="space-y-2">
                 <Button
                   onClick={() => {
-                    // Switch to check tab WITHOUT resetting -- ID stays filled
                     setActiveTab("check");
                     setSubmitted(false);
                   }}
@@ -897,37 +911,139 @@ export function SellerPage() {
                     </div>
                   </div>
 
-                  {/* Address */}
-                  <div className="space-y-1.5">
-                    <Label htmlFor="address">
-                      <BiLabel hindi="एड्रेस" english="Address" />
-                    </Label>
-                    <div className="relative">
-                      <MapPin className="absolute left-3 top-3 w-4 h-4 text-muted-foreground" />
-                      <Textarea
-                        id="address"
-                        placeholder="घर का पता लिखें / Enter your address"
-                        value={formData.address}
+                  {/* Address Section */}
+                  <div className="space-y-3">
+                    <div className="flex items-center gap-2">
+                      <MapPin className="w-4 h-4 text-primary shrink-0" />
+                      <span className="font-display font-semibold text-sm text-foreground">
+                        <span className="text-primary">पूरा पता</span>
+                        <span className="text-muted-foreground mx-1">/</span>
+                        <span className="text-foreground/80">Full Address</span>
+                      </span>
+                    </div>
+
+                    {/* House No. */}
+                    <div className="space-y-1.5">
+                      <Label htmlFor="houseNo">
+                        <BiLabel
+                          hindi="घर/दुकान नंबर"
+                          english="House / Shop No."
+                        />
+                      </Label>
+                      <Input
+                        id="houseNo"
+                        placeholder="जैसे: 12B, Shop 3 / e.g. House 12B"
+                        value={formData.houseNo}
                         onChange={(e) => {
                           setFormData((p) => ({
                             ...p,
-                            address: e.target.value,
+                            houseNo: e.target.value,
                           }));
-                          setErrors((ev) => ({ ...ev, address: undefined }));
+                          setErrors((ev) => ({ ...ev, houseNo: undefined }));
                         }}
-                        className={`pl-9 min-h-[80px] resize-none ${errors.address ? "border-destructive" : ""}`}
-                        data-ocid="seller.address.textarea"
+                        className={`h-11 ${errors.houseNo ? "border-destructive" : ""}`}
+                        data-ocid="seller.house_no.input"
                       />
+                      {errors.houseNo && (
+                        <p className="text-destructive text-xs">
+                          {errors.houseNo}
+                        </p>
+                      )}
                     </div>
-                    {errors.address && (
-                      <p
-                        className="text-destructive text-xs"
-                        data-ocid="seller.address.error_state"
-                      >
-                        {errors.address}
-                      </p>
-                    )}
+
+                    {/* Street & Area */}
+                    <div className="space-y-1.5">
+                      <Label htmlFor="street">
+                        <BiLabel hindi="गली/मोहल्ला" english="Street & Area" />
+                      </Label>
+                      <Input
+                        id="street"
+                        placeholder="जैसे: राम नगर, सेक्टर 5 / e.g. Ram Nagar, Sector 5"
+                        value={formData.street}
+                        onChange={(e) => {
+                          setFormData((p) => ({
+                            ...p,
+                            street: e.target.value,
+                          }));
+                          setErrors((ev) => ({ ...ev, street: undefined }));
+                        }}
+                        className={`h-11 ${errors.street ? "border-destructive" : ""}`}
+                        data-ocid="seller.street.input"
+                      />
+                      {errors.street && (
+                        <p className="text-destructive text-xs">
+                          {errors.street}
+                        </p>
+                      )}
+                    </div>
+
+                    {/* City + Pincode row */}
+                    <div className="grid grid-cols-2 gap-3">
+                      <div className="space-y-1.5">
+                        <Label htmlFor="city">
+                          <BiLabel hindi="शहर" english="City" />
+                        </Label>
+                        <Input
+                          id="city"
+                          placeholder="शहर / City"
+                          value={formData.city}
+                          onChange={(e) => {
+                            setFormData((p) => ({
+                              ...p,
+                              city: e.target.value,
+                            }));
+                            setErrors((ev) => ({ ...ev, city: undefined }));
+                          }}
+                          className={`h-11 ${errors.city ? "border-destructive" : ""}`}
+                          data-ocid="seller.city.input"
+                        />
+                        {errors.city && (
+                          <p className="text-destructive text-xs">
+                            {errors.city}
+                          </p>
+                        )}
+                      </div>
+
+                      <div className="space-y-1.5">
+                        <Label htmlFor="pincode">
+                          <BiLabel hindi="पिनकोड" english="Pincode" />
+                        </Label>
+                        <Input
+                          id="pincode"
+                          placeholder="6 अंक / 6 digits"
+                          value={formData.pincode}
+                          onChange={(e) => {
+                            const val = e.target.value
+                              .replace(/\D/g, "")
+                              .slice(0, 6);
+                            setFormData((p) => ({ ...p, pincode: val }));
+                            setErrors((ev) => ({ ...ev, pincode: undefined }));
+                          }}
+                          inputMode="numeric"
+                          maxLength={6}
+                          className={`h-11 ${errors.pincode ? "border-destructive" : ""}`}
+                          data-ocid="seller.pincode.input"
+                        />
+                        {errors.pincode && (
+                          <p className="text-destructive text-xs">
+                            {errors.pincode}
+                          </p>
+                        )}
+                      </div>
+                    </div>
                   </div>
+
+                  {/* WhatsApp contact link */}
+                  <a
+                    href="https://wa.me/919639107862"
+                    target="_blank"
+                    rel="noopener noreferrer"
+                    className="inline-flex items-center gap-2 text-sm font-semibold text-[#25D366] hover:text-[#128C7E] transition-colors"
+                    data-ocid="seller.whatsapp.link"
+                  >
+                    <MessageCircle className="w-4 h-4 fill-current" />
+                    WhatsApp पर संपर्क करें / Contact on WhatsApp
+                  </a>
 
                   {/* Seller Name + Phone row */}
                   <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
