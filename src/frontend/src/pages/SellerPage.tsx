@@ -429,6 +429,7 @@ export function SellerPage() {
   );
   const [activeTab, setActiveTab] = useState("sell");
   const [idCopied, setIdCopied] = useState(false);
+  const [showWhatsAppPopup, setShowWhatsAppPopup] = useState(false);
 
   const { actor, isFetching: actorLoading } = useActor();
   const queryClient = useQueryClient();
@@ -874,6 +875,17 @@ export function SellerPage() {
                             Rate: ₹{selectedStorageRate.toLocaleString("en-IN")}
                           </Badge>
                         )}
+                      {formData.storage &&
+                        formData.storage !== "पता नहीं" &&
+                        selectedStorageRate === 0 && (
+                          <Badge
+                            className="inline-flex items-center gap-1.5 bg-amber-100 text-amber-700 border border-amber-200 font-semibold text-xs px-2.5 py-1 font-display"
+                            data-ocid="seller.storage.rate_badge"
+                          >
+                            <HelpCircle className="w-3 h-3" />
+                            रेट जल्द सेट होगी / Rate coming soon
+                          </Badge>
+                        )}
                     </div>
 
                     {/* Condition */}
@@ -1033,17 +1045,64 @@ export function SellerPage() {
                     </div>
                   </div>
 
-                  {/* WhatsApp contact link */}
-                  <a
-                    href="https://wa.me/919639107862"
-                    target="_blank"
-                    rel="noopener noreferrer"
-                    className="inline-flex items-center gap-2 text-sm font-semibold text-[#25D366] hover:text-[#128C7E] transition-colors"
-                    data-ocid="seller.whatsapp.link"
-                  >
-                    <MessageCircle className="w-4 h-4 fill-current" />
-                    WhatsApp पर संपर्क करें / Contact on WhatsApp
-                  </a>
+                  {/* WhatsApp contact popup */}
+                  <div className="relative">
+                    <button
+                      type="button"
+                      onClick={() => setShowWhatsAppPopup((prev) => !prev)}
+                      className="w-full flex items-center gap-3 px-4 py-3 rounded-xl border-2 border-[#25D366] bg-[#25D366]/10 hover:bg-[#25D366]/20 active:scale-95 transition-all shadow-md group animate-pulse-once"
+                      data-ocid="seller.whatsapp.open_modal_button"
+                      style={{ boxShadow: "0 0 12px 2px #25D36655" }}
+                    >
+                      <span className="flex-shrink-0 w-11 h-11 rounded-full bg-[#25D366] flex items-center justify-center shadow-lg">
+                        <MessageCircle className="w-6 h-6 fill-white text-white" />
+                      </span>
+                      <span className="flex flex-col items-start gap-0.5">
+                        <span className="text-base font-extrabold text-[#128C7E] tracking-wide leading-tight">
+                          📲 व्हाट्सऐप पर क्लिक करो
+                        </span>
+                        <span className="text-xs font-semibold text-[#25D366] leading-tight">
+                          2 फोटो (back और front) भेजो
+                        </span>
+                      </span>
+                      <span className="ml-auto text-[#25D366] text-lg">▶</span>
+                    </button>
+                    {showWhatsAppPopup && (
+                      <div
+                        className="absolute left-0 mt-2 z-50 bg-white dark:bg-zinc-900 border border-border rounded-xl shadow-lg p-3 flex flex-col gap-2 w-56"
+                        data-ocid="seller.whatsapp.popover"
+                      >
+                        <a
+                          href="https://wa.me/919639107862"
+                          target="_blank"
+                          rel="noopener noreferrer"
+                          onClick={() => setShowWhatsAppPopup(false)}
+                          className="flex items-center gap-2 px-3 py-2 rounded-lg text-sm font-medium text-[#25D366] hover:bg-[#25D366]/10 transition-colors"
+                          data-ocid="seller.whatsapp.link"
+                        >
+                          <MessageCircle className="w-4 h-4 fill-current" />
+                          Message भेजो / Send Message
+                        </a>
+                        <a
+                          href="tel:+919639107862"
+                          onClick={() => setShowWhatsAppPopup(false)}
+                          className="flex items-center gap-2 px-3 py-2 rounded-lg text-sm font-medium text-emerald-600 hover:bg-emerald-50 transition-colors"
+                          data-ocid="seller.whatsapp.call.link"
+                        >
+                          <Phone className="w-4 h-4" />
+                          Call करो / Call Now
+                        </a>
+                        <button
+                          type="button"
+                          onClick={() => setShowWhatsAppPopup(false)}
+                          className="text-xs text-muted-foreground hover:text-foreground text-right pr-1 transition-colors"
+                          data-ocid="seller.whatsapp.close_button"
+                        >
+                          बंद करें ✕
+                        </button>
+                      </div>
+                    )}
+                  </div>
 
                   {/* Seller Name + Phone row */}
                   <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
