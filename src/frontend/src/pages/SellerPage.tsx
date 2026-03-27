@@ -83,10 +83,8 @@ const STORAGE_OPTIONS = [
 ];
 
 const CONDITION_OPTIONS = [
-  { value: "Good", label: "Good (अच्छा)" },
-  { value: "Average", label: "Average (ठीक-ठाक)" },
-  { value: "Broken Screen", label: "Broken Screen (टूटी स्क्रीन)" },
-  { value: "Heavy Damage", label: "Heavy Damage (ज्यादा खराब)" },
+  { value: "Mobile", label: "मोबाइल / Mobile" },
+  { value: "Mobile Motherboard", label: "मोबाइल मदरबोर्ड / Mobile Motherboard" },
 ];
 
 const STATUS_CONFIG: Record<
