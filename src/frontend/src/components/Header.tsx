@@ -17,7 +17,7 @@ export function Header({ currentPage, onNavigate, newCount }: HeaderProps) {
         <div className="flex items-center gap-2.5 min-w-0">
           <div className="flex-shrink-0 w-10 h-10 rounded-xl overflow-hidden shadow-glow">
             <img
-              src="/assets/generated/mobile-kabadi-wala-logo-green-black.dim_512x512.png"
+              src="/assets/generated/mobile-kabadi-wala-logo-new.dim_512x512.png"
               alt="Mobile Kabadi Wala Logo"
               className="w-full h-full object-cover"
             />
